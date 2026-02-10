@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
+import Image from 'next/image';
 
 export default function SignupPage() {
     const router = useRouter();
@@ -65,11 +66,8 @@ export default function SignupPage() {
             <div className="max-w-md w-full">
                 {/* Logo */}
                 <div className="text-center mb-8 animate-fade-in">
-                    <Link href="/" className="inline-flex items-center space-x-2 mb-4">
-                        <Icon icon="mdi:robot-happy" className="text-5xl text-primary-600" />
-                        <span className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-                            Learner Bot
-                        </span>
+                    <Link href="/" className="inline-flex justify-center mb-4">
+                        <Image src="/dpu-logo.svg" alt="DPU Logo" width={220} height={66} className="h-14 w-auto" />
                     </Link>
                     <h1 className="text-2xl font-bold text-gray-800 mt-4">Create Your Account</h1>
                     <p className="text-gray-600">Start your learning journey today</p>

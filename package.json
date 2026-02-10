@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@iconify/react": "^4.1.1",
     "bcryptjs": "^2.4.3",
     "mongodb": "^7.1.0",

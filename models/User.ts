@@ -5,7 +5,14 @@ export interface IUser {
     name: string;
     email: string;
     password: string;
-    role: 'user' | 'admin';
+    role: 'student' | 'faculty' | 'mentor' | 'admin';
+    permissions: {
+        manageUsers: boolean;
+        manageCorpus: boolean;
+        manageDB: boolean;
+        viewChats: boolean;
+    };
+    isActive: boolean;
     createdAt: Date;
 }
 
@@ -27,8 +34,18 @@ const UserSchema = new Schema<IUser>({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
-        default: 'user',
+        enum: ['student', 'faculty', 'mentor', 'admin'],
+        default: 'student',
+    },
+    permissions: {
+        manageUsers: { type: Boolean, default: false },
+        manageCorpus: { type: Boolean, default: false },
+        manageDB: { type: Boolean, default: false },
+        viewChats: { type: Boolean, default: false },
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
     },
     createdAt: {
         type: Date,

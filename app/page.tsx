@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
+import Image from 'next/image';
 
 export default function HomePage() {
     return (
@@ -10,12 +11,9 @@ export default function HomePage() {
             <nav className="glass sticky top-0 z-50 backdrop-blur-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-2">
-                            <Icon icon="mdi:robot-happy" className="text-4xl text-primary-600" />
-                            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-                                Learner Bot
-                            </span>
-                        </div>
+                        <Link href="/" className="flex items-center space-x-3">
+                            <Image src="/dpu-logo.svg" alt="DPU Logo" width={200} height={60} className="h-12 w-auto" />
+                        </Link>
                         <div className="flex items-center space-x-4">
                             <Link
                                 href="/login"
@@ -162,12 +160,11 @@ export default function HomePage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid md:grid-cols-3 gap-8">
                         <div>
-                            <div className="flex items-center space-x-2 mb-4">
-                                <Icon icon="mdi:robot-happy" className="text-3xl text-primary-400" />
-                                <span className="text-xl font-bold">Learner Bot</span>
+                            <div className="mb-4">
+                                <Image src="/dpu-logo.svg" alt="DPU Logo" width={180} height={54} className="h-10 w-auto brightness-0 invert" />
                             </div>
                             <p className="text-gray-400">
-                                Your AI-powered learning companion for a better educational experience.
+                                Centre for Online Learning - Your AI-powered learning companion.
                             </p>
                         </div>
                         <div>
@@ -198,7 +195,7 @@ export default function HomePage() {
                         </div>
                     </div>
                     <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                        <p>&copy; 2026 Learner Bot. All rights reserved.</p>
+                        <p>&copy; 2026 Dr. D. Y. Patil Vidyapeeth, Pune - Centre for Online Learning. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

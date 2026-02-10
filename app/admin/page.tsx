@@ -5,41 +5,29 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
-
-interface User {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    createdAt: Date;
-}
-
-interface Chat {
-    _id: string;
-    userId: {
-        _id: string;
-        name: string;
-        email: string;
-    };
-    title: string;
-    messages: Array<{
-        role: 'user' | 'assistant';
-        content: string;
-        timestamp: Date;
-    }>;
-    createdAt: Date;
-    updatedAt: Date;
-}
+import Image from 'next/image';
+import RoleManager from '@/components/admin/RoleManager';
+import UserManager from '@/components/admin/UserManager';
+import CorpusManager from '@/components/admin/CorpusManager';
+import DatabaseManager from '@/components/admin/DatabaseManager';
+import AIRulesManager from '@/components/admin/AIRulesManager';
+import SettingsManager from '@/components/admin/SettingsManager';
 
 export default function AdminPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [users, setUsers] = useState<User[]>([]);
-    const [chats, setChats] = useState<Chat[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'users' | 'chats'>('chats');
-    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    const [activeTab, setActiveTab] = useState<'chats' | 'users' | 'roles' | 'corpus' | 'database' | 'rules' | 'settings'>('chats');
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Data states
+    const [users, setUsers] = useState<any[]>([]);
+    const [chats, setChats] = useState<any[]>([]);
+    const [roles, setRoles] = useState<any[]>([]);
+    const [corpus, setCorpus] = useState<any[]>([]);
+    const [databases, setDatabases] = useState<any[]>([]);
+    const [rules, setRules] = useState<any[]>([]);
+    const [selectedChat, setSelectedChat] = useState<any>(null);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -53,17 +41,21 @@ export default function AdminPage() {
 
     const fetchData = async () => {
         try {
-            const [usersRes, chatsRes] = await Promise.all([
+            const [usersRes, chatsRes, rolesRes, corpusRes, dbRes, rulesRes] = await Promise.all([
                 fetch('/api/admin/users'),
                 fetch('/api/admin/chats'),
+                fetch('/api/admin/roles'),
+                fetch('/api/admin/corpus'),
+                fetch('/api/admin/database'),
+                fetch('/api/admin/rules'),
             ]);
 
-            if (usersRes.ok && chatsRes.ok) {
-                const usersData = await usersRes.json();
-                const chatsData = await chatsRes.json();
-                setUsers(usersData.users);
-                setChats(chatsData.chats);
-            }
+            if (usersRes.ok) setUsers((await usersRes.json()).users);
+            if (chatsRes.ok) setChats((await chatsRes.json()).chats);
+            if (rolesRes.ok) setRoles((await rolesRes.json()).roles);
+            if (corpusRes.ok) setCorpus((await corpusRes.json()).items);
+            if (dbRes.ok) setDatabases((await dbRes.json()).databases);
+            if (rulesRes.ok) setRules((await rulesRes.json()).rules);
         } catch (error) {
             console.error('Failed to fetch admin data:', error);
         } finally {
@@ -78,12 +70,6 @@ export default function AdminPage() {
             chat.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredUsers = users.filter(
-        (user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -94,109 +80,113 @@ export default function AdminPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-            {/* Navbar */}
             <nav className="glass sticky top-0 z-50 backdrop-blur-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <Icon icon="mdi:shield-account" className="text-4xl text-purple-600" />
-                            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                Admin Panel
-                            </span>
+                        <Link href="/" className="flex items-center space-x-3">
+                            <Image src="/dpu-logo.svg" alt="DPU Logo" width={180} height={54} className="h-10 w-auto" />
+                            <span className="text-lg font-semibold text-gray-700">Admin Panel</span>
                         </Link>
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                href="/chat"
-                                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
-                            >
-                                <Icon icon="mdi:chat" />
-                                Chat
-                            </Link>
-                        </div>
+                        <Link
+                            href="/chat"
+                            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                        >
+                            <Icon icon="mdi:chat" />
+                            Chat
+                        </Link>
                     </div>
                 </div>
             </nav>
 
-            {/* Admin Dashboard */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Stats Cards */}
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
-                    <div className="glass p-6 rounded-2xl">
+                <div className="grid md:grid-cols-4 gap-4 mb-8">
+                    <div className="glass p-4 rounded-2xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 mb-1">Total Users</p>
-                                <h3 className="text-3xl font-bold text-gray-800">{users.length}</h3>
+                                <p className="text-gray-600 text-sm mb-1">Users</p>
+                                <h3 className="text-2xl font-bold text-gray-800">{users.length}</h3>
                             </div>
-                            <Icon icon="mdi:account-group" className="text-5xl text-primary-600" />
+                            <Icon icon="mdi:account-group" className="text-4xl text-primary-600" />
                         </div>
                     </div>
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-4 rounded-2xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 mb-1">Total Chats</p>
-                                <h3 className="text-3xl font-bold text-gray-800">{chats.length}</h3>
+                                <p className="text-gray-600 text-sm mb-1">Chats</p>
+                                <h3 className="text-2xl font-bold text-gray-800">{chats.length}</h3>
                             </div>
-                            <Icon icon="mdi:message-text" className="text-5xl text-purple-600" />
+                            <Icon icon="mdi:message-text" className="text-4xl text-purple-600" />
                         </div>
                     </div>
-                    <div className="glass p-6 rounded-2xl">
+                    <div className="glass p-4 rounded-2xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 mb-1">Total Messages</p>
-                                <h3 className="text-3xl font-bold text-gray-800">
-                                    {chats.reduce((sum, chat) => sum + chat.messages.length, 0)}
-                                </h3>
+                                <p className="text-gray-600 text-sm mb-1">Corpus</p>
+                                <h3 className="text-2xl font-bold text-gray-800">{corpus.length}</h3>
                             </div>
-                            <Icon icon="mdi:chat-processing" className="text-5xl text-secondary-600" />
+                            <Icon icon="mdi:file-document" className="text-4xl text-secondary-600" />
+                        </div>
+                    </div>
+                    <div className="glass p-4 rounded-2xl">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-600 text-sm mb-1">AI Rules</p>
+                                <h3 className="text-2xl font-bold text-gray-800">{rules.length}</h3>
+                            </div>
+                            <Icon icon="mdi:robot" className="text-4xl text-pink-600" />
                         </div>
                     </div>
                 </div>
 
                 {/* Tabs */}
                 <div className="glass rounded-2xl overflow-hidden">
-                    <div className="flex border-b border-gray-200">
-                        <button
-                            onClick={() => setActiveTab('chats')}
-                            className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'chats'
+                    <div className="flex border-b border-gray-200 overflow-x-auto">
+                        {[
+                            { id: 'chats', icon: 'mdi:chat', label: 'Chats' },
+                            { id: 'users', icon: 'mdi:account-group', label: 'Users' },
+                            { id: 'roles', icon: 'mdi:shield-account', label: 'Roles' },
+                            { id: 'corpus', icon: 'mdi:file-document', label: 'Corpus' },
+                            { id: 'database', icon: 'mdi:database', label: 'Database' },
+                            { id: 'rules', icon: 'mdi:robot', label: 'AI Rules' },
+                            { id: 'settings', icon: 'mdi:cog', label: 'Settings' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`flex-1 px-4 py-3 font-semibold transition-colors whitespace-nowrap ${activeTab === tab.id
                                     ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
                                     : 'text-gray-600 hover:bg-gray-100'
-                                }`}
-                        >
-                            <Icon icon="mdi:chat" className="inline mr-2" />
-                            All Chats
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('users')}
-                            className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'users'
-                                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                    : 'text-gray-600 hover:bg-gray-100'
-                                }`}
-                        >
-                            <Icon icon="mdi:account-group" className="inline mr-2" />
-                            All Users
-                        </button>
+                                    }`}
+                            >
+                                <Icon icon={tab.icon} className="inline mr-2" />
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="p-4 border-b border-gray-200">
-                        <div className="relative">
-                            <Icon
-                                icon="mdi:magnify"
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"
-                            />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder={`Search ${activeTab}...`}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                            />
+                    {/* Search Bar (only for chats) */}
+                    {activeTab === 'chats' && (
+                        <div className="p-4 border-b border-gray-200">
+                            <div className="relative">
+                                <Icon
+                                    icon="mdi:magnify"
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"
+                                />
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Search chats..."
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Content */}
                     <div className="p-4 max-h-[600px] overflow-y-auto">
-                        {activeTab === 'chats' ? (
+                        {activeTab === 'chats' && (
                             <div className="space-y-4">
                                 {filteredChats.map((chat) => (
                                     <div
@@ -224,34 +214,14 @@ export default function AdminPage() {
                                     <p className="text-center text-gray-500 py-8">No chats found</p>
                                 )}
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {filteredUsers.map((user) => (
-                                    <div key={user._id} className="bg-white rounded-xl p-4 shadow-md">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-semibold text-lg text-gray-800">{user.name}</h3>
-                                                <p className="text-gray-600 text-sm">{user.email}</p>
-                                                <span
-                                                    className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'admin'
-                                                            ? 'bg-purple-100 text-purple-700'
-                                                            : 'bg-blue-100 text-blue-700'
-                                                        }`}
-                                                >
-                                                    {user.role}
-                                                </span>
-                                            </div>
-                                            <span className="text-sm text-gray-500">
-                                                Joined {new Date(user.createdAt).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                                {filteredUsers.length === 0 && (
-                                    <p className="text-center text-gray-500 py-8">No users found</p>
-                                )}
-                            </div>
                         )}
+
+                        {activeTab === 'users' && <UserManager users={users} onRefresh={fetchData} />}
+                        {activeTab === 'roles' && <RoleManager roles={roles} onRefresh={fetchData} />}
+                        {activeTab === 'corpus' && <CorpusManager items={corpus} onRefresh={fetchData} />}
+                        {activeTab === 'database' && <DatabaseManager databases={databases} onRefresh={fetchData} />}
+                        {activeTab === 'rules' && <AIRulesManager rules={rules} onRefresh={fetchData} />}
+                        {activeTab === 'settings' && <SettingsManager onRefresh={fetchData} />}
                     </div>
                 </div>
             </div>
@@ -283,15 +253,15 @@ export default function AdminPage() {
                             </div>
                         </div>
                         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-4">
-                            {selectedChat.messages.map((msg, index) => (
+                            {selectedChat.messages.map((msg: any, index: number) => (
                                 <div
                                     key={index}
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
                                         className={`max-w-[80%] rounded-xl px-4 py-3 ${msg.role === 'user'
-                                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                                : 'bg-gray-100 text-gray-800'
+                                            ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
+                                            : 'bg-gray-100 text-gray-800'
                                             }`}
                                     >
                                         <p className="text-sm opacity-70 mb-1">

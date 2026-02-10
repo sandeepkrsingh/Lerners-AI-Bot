@@ -3,11 +3,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Chat from '@/models/Chat';
+import { generateGeminiResponse } from '@/lib/gemini';
 
 // Get a specific chat with all messages
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -18,8 +19,10 @@ export async function GET(
 
         await dbConnect();
 
+        const { id } = await params;
+
         const chat = await Chat.findOne({
-            _id: params.id,
+            _id: id,
             userId: (session.user as any).id,
         });
 
@@ -40,7 +43,7 @@ export async function GET(
 // Add a message to chat and get AI response
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -60,8 +63,10 @@ export async function POST(
 
         await dbConnect();
 
+        const { id } = await params;
+
         const chat = await Chat.findOne({
-            _id: params.id,
+            _id: id,
             userId: (session.user as any).id,
         });
 
@@ -76,8 +81,8 @@ export async function POST(
             timestamp: new Date(),
         });
 
-        // Generate AI response (placeholder)
-        const aiResponse = await generateAIResponse(message, chat.messages);
+        // Generate AI response using Gemini with AI Rules integration
+        const aiResponse = await generateGeminiResponse(message, chat.messages);
 
         // Add AI message
         chat.messages.push({
@@ -103,40 +108,37 @@ export async function POST(
     }
 }
 
-// Placeholder AI response function
-// Google Gemini Integration
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-async function generateAIResponse(userMessage: string, history: any[]): Promise<string> {
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    if (!apiKey) {
-        return "I'm not fully configured yet! Please add a valid GEMINI_API_KEY to your .env.local file to unlock my full potential.";
-    }
-
+// Delete a chat
+export async function DELETE(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const session = await getServerSession(authOptions);
 
-        // Convert chat history to Gemini format
-        // Gemini expects: { role: "user" | "model", parts: [{ text: "..." }] }
-        const chatHistory = history.slice(0, -1).map((msg) => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.content }],
-        }));
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        const chat = model.startChat({
-            history: chatHistory,
-            generationConfig: {
-                maxOutputTokens: 1000,
-            },
+        await dbConnect();
+
+        const { id } = await params;
+
+        const chat = await Chat.findOneAndDelete({
+            _id: id,
+            userId: (session.user as any).id,
         });
 
-        const result = await chat.sendMessage(userMessage);
-        const response = await result.response;
-        return response.text();
+        if (!chat) {
+            return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Chat deleted successfully' }, { status: 200 });
     } catch (error) {
-        console.error("Gemini API Error:", error);
-        return "I'm having trouble connecting to my brain right now. Please try again later.";
+        console.error('Delete chat error:', error);
+        return NextResponse.json(
+            { error: 'Failed to delete chat' },
+            { status: 500 }
+        );
     }
 }

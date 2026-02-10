@@ -1,3 +1,4 @@
+
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
@@ -25,6 +26,10 @@ export const authOptions: NextAuthOptions = {
                     throw new Error('Invalid email or password');
                 }
 
+                if (!user.isActive) {
+                    throw new Error('Your account has been deactivated. Please contact an admin.');
+                }
+
                 const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
                 if (!isPasswordValid) {
@@ -36,6 +41,8 @@ export const authOptions: NextAuthOptions = {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    permissions: user.permissions,
+                    isActive: user.isActive,
                 };
             },
         }),
@@ -43,8 +50,10 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.role = (user as any).role;
+                token.role = user.role;
                 token.id = user.id;
+                token.permissions = user.permissions;
+                token.isActive = user.isActive;
             }
             return token;
         },
@@ -52,6 +61,8 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 (session.user as any).role = token.role;
                 (session.user as any).id = token.id;
+                (session.user as any).permissions = token.permissions;
+                (session.user as any).isActive = token.isActive;
             }
             return session;
         },

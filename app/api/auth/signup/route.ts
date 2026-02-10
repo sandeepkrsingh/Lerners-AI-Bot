@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
             name,
             email,
             password: hashedPassword,
-            role: 'user',
+            role: 'student',
         });
 
         return NextResponse.json(
@@ -54,8 +54,24 @@ export async function POST(req: NextRequest) {
         );
     } catch (error: any) {
         console.error('Signup error:', error);
+
+        // Handle specific MongoDB errors
+        if (error.name === 'ValidationError') {
+            return NextResponse.json(
+                { error: 'Validation error: ' + error.message },
+                { status: 400 }
+            );
+        }
+
+        if (error.code === 11000) {
+            return NextResponse.json(
+                { error: 'User already exists with this email' },
+                { status: 409 }
+            );
+        }
+
         return NextResponse.json(
-            { error: 'An error occurred during signup' },
+            { error: error.message || 'An error occurred during signup' },
             { status: 500 }
         );
     }

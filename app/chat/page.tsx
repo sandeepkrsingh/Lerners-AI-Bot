@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -104,11 +105,8 @@ export default function ChatPage() {
             <nav className="glass sticky top-0 z-50 backdrop-blur-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <Icon icon="mdi:robot-happy" className="text-4xl text-primary-600" />
-                            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-                                Learner Bot
-                            </span>
+                        <Link href="/" className="flex items-center space-x-3">
+                            <Image src="/dpu-logo.svg" alt="DPU Logo" width={180} height={54} className="h-10 w-auto" />
                         </Link>
                         <div className="flex items-center space-x-4">
                             <span className="text-gray-700">Hi, {session?.user?.name}</span>
@@ -154,8 +152,8 @@ export default function ChatPage() {
                                         >
                                             <div
                                                 className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === 'user'
-                                                        ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                                        : 'bg-white text-gray-800 shadow-md'
+                                                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
+                                                    : 'bg-white text-gray-800 shadow-md'
                                                     }`}
                                             >
                                                 <div className="flex items-start gap-2">
