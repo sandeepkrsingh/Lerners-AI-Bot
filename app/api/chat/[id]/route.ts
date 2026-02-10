@@ -104,30 +104,39 @@ export async function POST(
 }
 
 // Placeholder AI response function
+// Google Gemini Integration
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
 async function generateAIResponse(userMessage: string, history: any[]): Promise<string> {
-    // TODO: Integrate with OpenAI, Gemini, or other AI service
-    // This is a placeholder that simulates AI responses
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const responses = [
-        "I'm here to help you with your learning! Could you please provide more details about what you'd like to learn?",
-        "That's a great question! Let me help you understand this better.",
-        "I can assist you with that. Here's what you need to know...",
-        "Let me break this down for you in a simple way.",
-        "Excellent! I'm happy to help you learn about this topic.",
-    ];
-
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Return a contextual response based on message content
-    if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
-        return "Hello! I'm your learner assistance bot. How can I help you with your studies today?";
+    if (!apiKey) {
+        return "I'm not fully configured yet! Please add a valid GEMINI_API_KEY to your .env.local file to unlock my full potential.";
     }
 
-    if (userMessage.toLowerCase().includes('thank')) {
-        return "You're welcome! Feel free to ask if you have any other questions.";
-    }
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    // Return a random helpful response
-    return responses[Math.floor(Math.random() * responses.length)];
+        // Convert chat history to Gemini format
+        // Gemini expects: { role: "user" | "model", parts: [{ text: "..." }] }
+        const chatHistory = history.slice(0, -1).map((msg) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }],
+        }));
+
+        const chat = model.startChat({
+            history: chatHistory,
+            generationConfig: {
+                maxOutputTokens: 1000,
+            },
+        });
+
+        const result = await chat.sendMessage(userMessage);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        return "I'm having trouble connecting to my brain right now. Please try again later.";
+    }
 }
