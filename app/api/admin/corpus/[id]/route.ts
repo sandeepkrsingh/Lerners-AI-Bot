@@ -7,7 +7,7 @@ import Corpus from '@/models/Corpus';
 // Update corpus item
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -18,6 +18,8 @@ export async function PUT(
         const { title, type, sourceType, content, description, isActive, webLink, fileData, fileName, fileSize } = await req.json();
 
         await dbConnect();
+
+        const { id } = await params;
 
         const updateData: any = {};
         if (title) updateData.title = title;
@@ -34,7 +36,7 @@ export async function PUT(
         }
 
         const updatedItem = await Corpus.findByIdAndUpdate(
-            params.id,
+            id,
             { $set: updateData },
             { new: true }
         );
@@ -53,7 +55,7 @@ export async function PUT(
 // Delete corpus item
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -62,7 +64,8 @@ export async function DELETE(
         }
 
         await dbConnect();
-        const item = await Corpus.findByIdAndDelete(params.id);
+        const { id } = await params;
+        const item = await Corpus.findByIdAndDelete(id);
 
         if (!item) {
             return NextResponse.json({ error: 'Item not found' }, { status: 404 });
