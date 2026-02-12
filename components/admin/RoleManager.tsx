@@ -142,7 +142,7 @@ export default function RoleManager({ roles, onRefresh }: RoleManagerProps) {
                                     <p className="text-gray-600 text-sm mt-1">{role.description}</p>
                                 )}
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                    {Object.entries(role.permissions).map(([key, value]) =>
+                                    {Object.entries(role.permissions as Record<string, boolean>).map(([key, value]) =>
                                         value && (
                                             <span key={key} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
                                                 {key}

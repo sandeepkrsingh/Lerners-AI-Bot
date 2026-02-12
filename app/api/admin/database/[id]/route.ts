@@ -7,7 +7,7 @@ import Database from '@/models/Database';
 // Update database entry
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -27,8 +27,10 @@ export async function PUT(
         if (category) updateData.category = category;
         if (typeof isActive === 'boolean') updateData.isActive = isActive;
 
+        const { id } = await params;
+
         const updatedDatabase = await Database.findByIdAndUpdate(
-            params.id,
+            id,
             { $set: updateData },
             { new: true }
         );
@@ -47,7 +49,7 @@ export async function PUT(
 // Delete database entry
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -56,7 +58,8 @@ export async function DELETE(
         }
 
         await dbConnect();
-        const database = await Database.findByIdAndDelete(params.id);
+        const { id } = await params;
+        const database = await Database.findByIdAndDelete(id);
 
         if (!database) {
             return NextResponse.json({ error: 'Database not found' }, { status: 404 });

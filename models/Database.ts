@@ -30,7 +30,7 @@ const DatabaseSchema = new Schema<IDatabase>({
     data: {
         type: [Schema.Types.Mixed],
         default: [],
-    },
+    } as any,
     category: {
         type: String,
         enum: ['learner_records', 'academic_data', 'logs', 'other'],

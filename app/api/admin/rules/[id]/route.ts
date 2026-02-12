@@ -7,7 +7,7 @@ import AIRule from '@/models/AIRule';
 // Update AI rule
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -19,8 +19,12 @@ export async function PUT(
 
         await dbConnect();
 
+        await dbConnect();
+
+        const { id } = await params;
+
         const updatedRule = await AIRule.findByIdAndUpdate(
-            params.id,
+            id,
             {
                 ...(rule && { rule }),
                 ...(category && { category }),
@@ -44,7 +48,7 @@ export async function PUT(
 // Delete AI rule
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -53,7 +57,8 @@ export async function DELETE(
         }
 
         await dbConnect();
-        const deletedRule = await AIRule.findByIdAndDelete(params.id);
+        const { id } = await params;
+        const deletedRule = await AIRule.findByIdAndDelete(id);
 
         if (!deletedRule) {
             return NextResponse.json({ error: 'Rule not found' }, { status: 404 });

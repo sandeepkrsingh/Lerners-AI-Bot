@@ -7,7 +7,7 @@ import Role from '@/models/Role';
 // Update role
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -19,8 +19,12 @@ export async function PUT(
 
         await dbConnect();
 
+        await dbConnect();
+
+        const { id } = await params;
+
         // Check if role is a system role
-        const role = await Role.findById(params.id);
+        const role = await Role.findById(id);
         if (!role) {
             return NextResponse.json({ error: 'Role not found' }, { status: 404 });
         }
@@ -28,7 +32,7 @@ export async function PUT(
         if (role.isSystem) {
             // Only allow updating permissions for system roles, not name or description
             const updatedRole = await Role.findByIdAndUpdate(
-                params.id,
+                id,
                 { permissions },
                 { new: true }
             );
@@ -37,7 +41,7 @@ export async function PUT(
 
         // For custom roles, allow full updates
         const updatedRole = await Role.findByIdAndUpdate(
-            params.id,
+            id,
             {
                 ...(name && { name }),
                 ...(description !== undefined && { description }),
@@ -56,7 +60,7 @@ export async function PUT(
 // Delete role
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -66,7 +70,11 @@ export async function DELETE(
 
         await dbConnect();
 
-        const role = await Role.findById(params.id);
+        await dbConnect();
+
+        const { id } = await params;
+
+        const role = await Role.findById(id);
         if (!role) {
             return NextResponse.json({ error: 'Role not found' }, { status: 404 });
         }
@@ -79,7 +87,7 @@ export async function DELETE(
             );
         }
 
-        await Role.findByIdAndDelete(params.id);
+        await Role.findByIdAndDelete(id);
 
         return NextResponse.json({ message: 'Role deleted successfully' }, { status: 200 });
     } catch (error) {
