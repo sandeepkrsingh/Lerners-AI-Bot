@@ -29,8 +29,15 @@ const UserSchema = new Schema<IUser>({
     },
     password: {
         type: String,
-        required: [true, 'Please provide a password'],
+        required: false,
         select: false,
+    },
+    provider: {
+        type: String,
+        default: 'credentials',
+    },
+    image: {
+        type: String,
     },
     role: {
         type: String,
