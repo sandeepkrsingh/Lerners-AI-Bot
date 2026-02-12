@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
@@ -185,6 +186,26 @@ export default function SignupPage() {
                             )}
                         </button>
                     </form>
+
+                    <div className="mt-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => signIn('google', { callbackUrl: '/chat' })}
+                            className="mt-6 w-full py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                            <Icon icon="devicon:google" className="text-xl" />
+                            Sign up with Google
+                        </button>
+                    </div>
 
                     <div className="mt-6 text-center">
                         <p className="text-gray-600">
