@@ -10,12 +10,13 @@
 ```bash
 curl -X POST http://localhost:3000/api/admin/make-admin \
   -H "Content-Type: application/json" \
+  -H "x-admin-secret: oYGad8UudAMEOUNEaDAOoeCVSJQL3Ga+tqBpIZ0hDM0=" \
   -d "{\"email\": \"bond0007@gmail.com\"}"
 ```
 
 **Or use PowerShell:**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:3000/api/admin/make-admin" -Method POST -Headers @{"Content-Type"="application/json"} -Body '{"email": "bond0007@gmail.com"}'
+Invoke-RestMethod -Uri "http://localhost:3000/api/admin/make-admin" -Method POST -Headers @{"Content-Type"="application/json"; "x-admin-secret"="oYGad8UudAMEOUNEaDAOoeCVSJQL3Ga+tqBpIZ0hDM0="} -Body '{"email": "bond0007@gmail.com"}'
 ```
 
 3. **Logout and login again** to see admin access

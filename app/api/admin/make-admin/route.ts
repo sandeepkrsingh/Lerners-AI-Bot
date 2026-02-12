@@ -9,11 +9,12 @@ import User from '@/models/User';
  */
 export async function POST(req: NextRequest) {
     try {
-        // Optional: Add a secret key check for security
-        // const secretKey = req.headers.get('x-admin-secret');
-        // if (secretKey !== process.env.ADMIN_SETUP_SECRET) {
-        //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        // }
+        // Security: Require secret key to prevent unauthorized admin creation
+        const secretKey = req.headers.get('x-admin-secret');
+        if (secretKey !== process.env.ADMIN_SETUP_SECRET) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
 
         const { email } = await req.json();
 

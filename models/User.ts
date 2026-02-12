@@ -14,6 +14,8 @@ export interface IUser {
     };
     isActive: boolean;
     createdAt: Date;
+    provider?: string;
+    image?: string;
 }
 
 const UserSchema = new Schema<IUser>({

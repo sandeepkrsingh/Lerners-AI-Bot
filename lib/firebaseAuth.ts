@@ -20,9 +20,11 @@ export async function getFirebaseUser(req: NextRequest) {
 
         const idToken = authHeader.split('Bearer ')[1];
 
-        // TODO: In production, verify the ID token with Firebase Admin SDK
-        // For now, we'll decode it (NOT SECURE - just for development)
-        // You should install firebase-admin and verify the token properly
+        // NOTE: This implementation uses basic JWT decoding for development purposes.
+        // For production deployment, implement proper Firebase ID token verification
+        // using Firebase Admin SDK. See: https://firebase.google.com/docs/auth/admin/verify-id-tokens
+        // Install: npm install firebase-admin
+        // Then use: admin.auth().verifyIdToken(idToken)
 
         // Temporary: Extract UID from token payload (base64 decode)
         // This is NOT secure and should be replaced with proper verification

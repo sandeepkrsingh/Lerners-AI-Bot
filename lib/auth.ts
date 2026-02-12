@@ -1,6 +1,7 @@
 
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
@@ -46,8 +47,48 @@ export const authOptions: NextAuthOptions = {
                 };
             },
         }),
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
     ],
     callbacks: {
+        async signIn({ user, account }) {
+            if (account?.provider === 'google') {
+                await dbConnect();
+                try {
+                    const existingUser = await User.findOne({ email: user.email });
+
+                    if (!existingUser) {
+                        // Create new user for Google login
+                        const newUser = await User.create({
+                            name: user.name,
+                            email: user.email,
+                            image: user.image,
+                            provider: 'google',
+                            role: 'student', // Default role
+                            isActive: true,
+                            permissions: {} // Default permissions
+                        });
+                        user.id = newUser._id.toString();
+                        (user as any).role = newUser.role;
+                        (user as any).permissions = newUser.permissions;
+                        (user as any).isActive = newUser.isActive;
+                    } else {
+                        // Update existing user logic if needed, or just set user properties
+                        user.id = existingUser._id.toString();
+                        (user as any).role = existingUser.role;
+                        (user as any).permissions = existingUser.permissions;
+                        (user as any).isActive = existingUser.isActive;
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('Error in Google Sign In:', error);
+                    return false;
+                }
+            }
+            return true;
+        },
         async jwt({ token, user }) {
             if (user) {
                 token.role = user.role;
